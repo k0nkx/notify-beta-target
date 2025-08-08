@@ -205,7 +205,7 @@ function NotificationLib:CreateNotification(text, duration, color)
 
         tweenService:Create(
             outerFrame,
-            TweenInfo.new(2, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
+            TweenInfo.new(1.11, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
             {
                 Position = outerFrame.Position + UDim2.new(0, slideDirection * 100, 0, 0),
                 BackgroundTransparency = 1,
