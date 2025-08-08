@@ -44,22 +44,44 @@ function NotificationLib.new()
 end
 
 function NotificationLib:UpdatePositions()
-    local screenHeight = self.container.AbsoluteSize.Y
-    
-    local currentY = screenHeight - 20
-    for _, notification in ipairs(self.activeNotifications) do
+    for i, notification in ipairs(self.activeNotifications) do
         if notification and notification.outerFrame and notification.outerFrame.Parent then
-            currentY = currentY - notification.outerFrame.AbsoluteSize.Y - 5
-            
+            local targetY = 20 + ((i - 1) * 30)
             game:GetService("TweenService"):Create(
                 notification.outerFrame,
-                TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-                {
-                    Position = UDim2.new(0.5, 0, 0, currentY),
-                    BackgroundTransparency = 0
-                }
+                TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+                {Position = UDim2.new(0.5, 0, 0, targetY)}
             ):Play()
         end
+    end
+end
+
+function NotificationLib:TypeWriter(textLabel, fullText, speed)
+    local typedText = ""
+    local cursorVisible = true
+    local cursorTask = nil
+    
+    local function ToggleCursor()
+        while true do
+            textLabel.Text = typedText .. (cursorVisible and "|" or "")
+            cursorVisible = not cursorVisible
+            task.wait(0.5)
+        end
+    end
+    
+    cursorTask = task.spawn(ToggleCursor)
+    
+    for i = 1, #fullText do
+        typedText = string.sub(fullText, 1, i)
+        if cursorTask then
+            textLabel.Text = typedText .. "|"
+        end
+        task.wait(speed)
+    end
+    
+    if cursorTask then
+        task.cancel(cursorTask)
+        textLabel.Text = fullText
     end
 end
 
@@ -82,7 +104,7 @@ function NotificationLib:CreateNotification(text, duration, color)
     outerFrame.AnchorPoint = Vector2.new(0.5, 0)
     outerFrame.Position = UDim2.new(0.5, 0, 1, 0)
     outerFrame.Size = UDim2.new(0, minWidth + 4, 0, 25)
-    outerFrame.BackgroundTransparency = 1
+    outerFrame.BackgroundTransparency = 0
     outerFrame.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
     outerFrame.BorderSizePixel = 1
     outerFrame.BorderColor3 = Color3.fromRGB(40, 40, 40)
@@ -130,7 +152,7 @@ function NotificationLib:CreateNotification(text, duration, color)
     textLabel.Position = UDim2.new(0, 0, 0, 0)
     textLabel.Size = UDim2.new(1, 0, 1, 0)
     textLabel.Font = Enum.Font.Ubuntu
-    textLabel.Text = text
+    textLabel.Text = ""
     textLabel.TextColor3 = Color3.new(1, 1, 1)
     textLabel.TextSize = 12
     textLabel.BackgroundTransparency = 1
@@ -177,11 +199,20 @@ function NotificationLib:CreateNotification(text, duration, color)
 
     self:UpdatePositions()
 
-    game:GetService("TweenService"):Create(
-        progressBar,
-        TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
-        {Size = UDim2.new(0, 0, 0, 1)}
-    ):Play()
+    local typingSpeed = 0.05
+    task.spawn(function()
+        self:TypeWriter(textLabel, text, typingSpeed)
+    end)
+
+    local typingDuration = #text * typingSpeed
+
+    task.delay(typingDuration, function()
+        game:GetService("TweenService"):Create(
+            progressBar,
+            TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
+            {Size = UDim2.new(0, 0, 0, 1)}
+        ):Play()
+    end)
 
     local function Remove()
         for i, notif in ipairs(self.activeNotifications) do
@@ -199,27 +230,40 @@ function NotificationLib:CreateNotification(text, duration, color)
             end
         end
 
-        local tweenService = game:GetService("TweenService")
+        local fadeOutGroup = {}
 
-        local tween = tweenService:Create(
+        table.insert(fadeOutGroup, game:GetService("TweenService"):Create(
             outerFrame,
-            TweenInfo.new(1, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
+            TweenInfo.new(2, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
             {
                 Position = UDim2.new(0, -outerFrame.AbsoluteSize.X, outerFrame.Position.Y.Scale, outerFrame.Position.Y.Offset),
-                BackgroundTransparency = 1
+                Size = UDim2.new(0, 0, 0, outerFrame.AbsoluteSize.Y),
+                BackgroundTransparency = 1,
+                BorderSizePixel = 0
             }
-        )
+        ))
 
-        tween:Play()
+        for _, element in pairs({holder, background, accentBar, progressBar, textLabel}) do
+            table.insert(fadeOutGroup, game:GetService("TweenService"):Create(
+                element,
+                TweenInfo.new(2, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
+                element:IsA("TextLabel") and {TextTransparency = 1} or {BackgroundTransparency = 1}
+            ))
+        end
 
-        tween.Completed:Connect(function()
+        for _, tween in ipairs(fadeOutGroup) do
+            tween:Play()
+        end
+
+        task.delay(2, function()
             outerFrame:Destroy()
             self:UpdatePositions()
         end)
     end
 
     notification.remove = Remove
-    task.delay(duration, Remove)
+
+    task.delay(typingDuration + duration, Remove)
     
     return notification
 end
