@@ -46,13 +46,6 @@ end
 
 function NotificationLib:UpdatePositions()
     local screenHeight = self.container.AbsoluteSize.Y
-    local totalHeight = 0
-    
-    for _, notification in ipairs(self.activeNotifications) do
-        if notification and notification.outerFrame then
-            totalHeight = totalHeight + notification.outerFrame.AbsoluteSize.Y + 5
-        end
-    end
     
     local currentY = screenHeight - 20
     for _, notification in ipairs(self.activeNotifications) do
@@ -208,11 +201,29 @@ function NotificationLib:CreateNotification(text, duration, color)
         end
 
         local slideDirection = math.random(0, 1) == 0 and -1 or 1
-        game:GetService("TweenService"):Create(
+        local tweenService = game:GetService("TweenService")
+
+        tweenService:Create(
             outerFrame,
             TweenInfo.new(2, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
             {
                 Position = outerFrame.Position + UDim2.new(0, slideDirection * 100, 0, 0),
+                BackgroundTransparency = 1,
+            }
+        ):Play()
+
+        tweenService:Create(
+            notification.textLabel,
+            TweenInfo.new(2, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
+            {
+                TextTransparency = 1
+            }
+        ):Play()
+
+        tweenService:Create(
+            notification.holder,
+            TweenInfo.new(2, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
+            {
                 BackgroundTransparency = 1
             }
         ):Play()
