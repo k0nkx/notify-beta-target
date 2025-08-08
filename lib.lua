@@ -234,7 +234,7 @@ function NotificationLib:CreateNotification(text, duration, color)
 
         table.insert(fadeOutGroup, game:GetService("TweenService"):Create(
             outerFrame,
-            TweenInfo.new(2, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
+            TweenInfo.new(0.5, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
             {
                 Position = UDim2.new(0, -outerFrame.AbsoluteSize.X, outerFrame.Position.Y.Scale, outerFrame.Position.Y.Offset),
                 Size = UDim2.new(0, 0, 0, outerFrame.AbsoluteSize.Y),
@@ -246,7 +246,7 @@ function NotificationLib:CreateNotification(text, duration, color)
         for _, element in pairs({holder, background, accentBar, progressBar, textLabel}) do
             table.insert(fadeOutGroup, game:GetService("TweenService"):Create(
                 element,
-                TweenInfo.new(2, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
+                TweenInfo.new(0.5, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
                 element:IsA("TextLabel") and {TextTransparency = 1} or {BackgroundTransparency = 1}
             ))
         end
