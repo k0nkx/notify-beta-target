@@ -1,11 +1,9 @@
 local NotificationLib = {}
 NotificationLib.__index = NotificationLib
 
--- Store a reference to the current instance
 local currentInstance = nil
 
 function NotificationLib.new()
-    -- Clean up previous instance if it exists
     if currentInstance then
         currentInstance:Destroy()
     end
@@ -21,26 +19,21 @@ function NotificationLib.new()
     self.ready = false
     self.queuedNotifications = {}
     
-    -- Wait for game to fully load
     task.spawn(function()
-        -- Wait for player to be loaded
         local player = game:GetService("Players").LocalPlayer
         while not player.Character do
             player.CharacterAdded:Wait()
-            task.wait(1) -- Additional buffer time
+            task.wait(1)
         end
         
-        -- Additional loading checks if needed
         if game:IsLoaded() == false then
             game.Loaded:Wait()
         end
         
-        -- Wait for the core UI to be ready
         task.wait(1)
         
         self.ready = true
         
-        -- Process any queued notifications
         for _, notificationData in ipairs(self.queuedNotifications) do
             self:CreateNotification(notificationData.text, notificationData.duration, notificationData.color)
         end
@@ -51,13 +44,14 @@ function NotificationLib.new()
 end
 
 function NotificationLib:UpdatePositions()
+    local screenHeight = workspace.CurrentCamera.ViewportSize.Y
     for i, notification in ipairs(self.activeNotifications) do
         if notification and notification.outerFrame and notification.outerFrame.Parent then
-            local targetY = 20 + ((i - 1) * 30)
+            local targetY = screenHeight - (20 + (i * 35)) -- stack upwards
             game:GetService("TweenService"):Create(
                 notification.outerFrame,
                 TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-                {Position = UDim2.new(0, 15, 0, targetY)}
+                {Position = UDim2.new(0.5, -notification.outerFrame.Size.X.Offset / 2, 0, targetY)}
             ):Play()
         end
     end
@@ -79,7 +73,7 @@ function NotificationLib:CreateNotification(text, duration, color)
 
     local outerFrame = Instance.new("Frame")
     outerFrame.Name = "OuterFrame"
-    outerFrame.Position = UDim2.new(0, -minWidth - 2, 0, -32)
+    outerFrame.Position = UDim2.new(0.5, -minWidth / 2, 1, 50) -- start below screen
     outerFrame.Size = UDim2.new(0, minWidth + 4, 0, 25)
     outerFrame.BackgroundTransparency = 0
     outerFrame.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
@@ -128,14 +122,13 @@ function NotificationLib:CreateNotification(text, duration, color)
     textLabel.Position = UDim2.new(0, 8, 0, 0)
     textLabel.Size = UDim2.new(1, -8, 1, 0)
     textLabel.Font = Enum.Font.Ubuntu
-    textLabel.Text = text -- Set text immediately instead of using typewriter effect
+    textLabel.Text = text
     textLabel.TextColor3 = Color3.new(1, 1, 1)
     textLabel.TextSize = 12
     textLabel.BackgroundTransparency = 1
     textLabel.TextTransparency = 0
     textLabel.Parent = background
 
-    -- Hover effect for entire notification
     local hoverConn = outerFrame.MouseEnter:Connect(function()
         for _, element in pairs({outerFrame, holder, background, accentBar, progressBar, textLabel}) do
             game:GetService("TweenService"):Create(
@@ -176,7 +169,6 @@ function NotificationLib:CreateNotification(text, duration, color)
 
     self:UpdatePositions()
 
-    -- Start progress bar immediately since we're not waiting for typing animation
     game:GetService("TweenService"):Create(
         progressBar,
         TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
@@ -193,9 +185,7 @@ function NotificationLib:CreateNotification(text, duration, color)
 
         if notification.connections then
             for _, conn in ipairs(notification.connections) do
-                if conn then
-                    conn:Disconnect()
-                end
+                if conn then conn:Disconnect() end
             end
         end
 
@@ -203,10 +193,9 @@ function NotificationLib:CreateNotification(text, duration, color)
         
         table.insert(fadeOutGroup, game:GetService("TweenService"):Create(
             outerFrame,
-            TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+            TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
             {
-                Position = UDim2.new(0, 10, 0, outerFrame.Position.Y.Offset - 20),
-                Size = UDim2.new(0, 0, 0, outerFrame.AbsoluteSize.Y),
+                Position = UDim2.new(0.5, -outerFrame.Size.X.Offset / 2, 1, 50),
                 BackgroundTransparency = 1,
                 BorderSizePixel = 0
             }
@@ -215,7 +204,7 @@ function NotificationLib:CreateNotification(text, duration, color)
         for _, element in pairs({holder, background, accentBar, progressBar, textLabel}) do
             table.insert(fadeOutGroup, game:GetService("TweenService"):Create(
                 element,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+                TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
                 element:IsA("TextLabel") and {TextTransparency = 1} or {BackgroundTransparency = 1}
             ))
         end
@@ -245,7 +234,6 @@ end
 
 function NotificationLib:WelcomePlayer()
     if not self.ready then
-        -- Queue the welcome message if game isn't loaded yet
         task.spawn(function()
             while not self.ready do
                 task.wait()
@@ -265,7 +253,6 @@ function NotificationLib:WelcomePlayer()
 end
 
 function NotificationLib:Destroy()
-    -- Clear the current instance reference if it's this one
     if currentInstance == self then
         currentInstance = nil
     end
