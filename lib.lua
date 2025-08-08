@@ -5,7 +5,6 @@ NotificationLib.__index = NotificationLib
 local currentInstance = nil
 
 function NotificationLib.new()
-    -- Clean up previous instance if it exists
     if currentInstance then
         currentInstance:Destroy()
     end
@@ -21,7 +20,6 @@ function NotificationLib.new()
     self.ready = false
     self.queuedNotifications = {}
     
-    -- Wait for game to fully load
     task.spawn(function()
         local player = game:GetService("Players").LocalPlayer
         while not player.Character do
@@ -29,7 +27,7 @@ function NotificationLib.new()
             task.wait(1)
         end
         
-        if game:IsLoaded() == false then
+        if not game:IsLoaded() then
             game.Loaded:Wait()
         end
         
@@ -48,8 +46,8 @@ end
 
 function NotificationLib:UpdatePositions()
     local screenHeight = self.container.AbsoluteSize.Y
-    
     local totalHeight = 0
+    
     for _, notification in ipairs(self.activeNotifications) do
         if notification and notification.outerFrame then
             totalHeight = totalHeight + notification.outerFrame.AbsoluteSize.Y + 5
@@ -65,7 +63,7 @@ function NotificationLib:UpdatePositions()
                 notification.outerFrame,
                 TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
                 {
-                    Position = UDim2.new(0.5, 0, 0, currentY), -- Always center horizontally
+                    Position = UDim2.new(0.5, 0, 0, currentY),
                     BackgroundTransparency = 0
                 }
             ):Play()
@@ -135,9 +133,10 @@ function NotificationLib:CreateNotification(text, duration, color)
 
     local textLabel = Instance.new("TextLabel")
     textLabel.Name = "TextLabel"
-    textLabel.TextXAlignment = Enum.TextXAlignment.Left
-    textLabel.Position = UDim2.new(0, 8, 0, 0)
-    textLabel.Size = UDim2.new(1, -8, 1, 0)
+    textLabel.TextXAlignment = Enum.TextXAlignment.Center
+    textLabel.TextYAlignment = Enum.TextYAlignment.Center
+    textLabel.Position = UDim2.new(0, 0, 0, 0)
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
     textLabel.Font = Enum.Font.Ubuntu
     textLabel.Text = text
     textLabel.TextColor3 = Color3.new(1, 1, 1)
