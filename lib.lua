@@ -1,7 +1,6 @@
 local NotificationLib = {}
 NotificationLib.__index = NotificationLib
 
--- Store a reference to the current instance
 local currentInstance = nil
 
 function NotificationLib.new()
@@ -202,32 +201,18 @@ function NotificationLib:CreateNotification(text, duration, color)
 
         local tweenService = game:GetService("TweenService")
 
-        tweenService:Create(
+        local tween = tweenService:Create(
             outerFrame,
-            TweenInfo.new(2, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
+            TweenInfo.new(2, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
             {
-                Position = outerFrame.Position + UDim2.new(0, -100, 0, 0),
-                BackgroundTransparency = 1,
-            }
-        ):Play()
-
-        tweenService:Create(
-            notification.textLabel,
-            TweenInfo.new(2, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
-            {
-                TextTransparency = 1
-            }
-        ):Play()
-
-        tweenService:Create(
-            notification.holder,
-            TweenInfo.new(2, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
-            {
+                Position = UDim2.new(0, -outerFrame.AbsoluteSize.X, outerFrame.Position.Y.Scale, outerFrame.Position.Y.Offset),
                 BackgroundTransparency = 1
             }
-        ):Play()
+        )
 
-        task.delay(2, function()
+        tween:Play()
+
+        tween.Completed:Connect(function()
             outerFrame:Destroy()
             self:UpdatePositions()
         end)
