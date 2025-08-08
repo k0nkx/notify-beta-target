@@ -207,16 +207,17 @@ function NotificationLib:CreateNotification(text, duration, color)
             end
         end
 
+        local slideDirection = math.random(0, 1) == 0 and -1 or 1
         game:GetService("TweenService"):Create(
             outerFrame,
-            TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
+            TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
             {
-                Position = UDim2.new(0.5, 0, 1, 0),
+                Position = outerFrame.Position + UDim2.new(0, slideDirection * 100, 0, 0),
                 BackgroundTransparency = 1
             }
         ):Play()
 
-        task.delay(0.3, function()
+        task.delay(0.5, function()
             outerFrame:Destroy()
             self:UpdatePositions()
         end)
