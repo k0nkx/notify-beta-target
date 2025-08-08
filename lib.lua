@@ -255,7 +255,7 @@ function NotificationLib:CreateNotification(text, duration, color)
             tween:Play()
         end
 
-        task.delay(2, function()
+        task.delay(0.5, function()
             outerFrame:Destroy()
             self:UpdatePositions()
         end)
