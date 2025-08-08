@@ -200,7 +200,7 @@ function NotificationLib:CreateNotification(text, duration, color)
             end
         end
 
-        local slideDirection = math.random(0, 1) == 0 and -1 or 1
+        local slideDirection = math.random(0, 5) == 0 and -5 or 5
         local tweenService = game:GetService("TweenService")
 
         tweenService:Create(
