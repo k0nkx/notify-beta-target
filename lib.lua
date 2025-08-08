@@ -44,11 +44,9 @@ function NotificationLib.new()
 end
 
 function NotificationLib:UpdatePositions()
-    local screenHeight = self.container.AbsoluteSize.Y
     for i, notification in ipairs(self.activeNotifications) do
         if notification and notification.outerFrame and notification.outerFrame.Parent then
-            local notifHeight = notification.outerFrame.AbsoluteSize.Y
-            local targetY = screenHeight - 20 - (i * (notifHeight + 5))
+            local targetY = 50 + ((i - 1) * 30)
             game:GetService("TweenService"):Create(
                 notification.outerFrame,
                 TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
@@ -104,8 +102,7 @@ function NotificationLib:CreateNotification(text, duration, color)
     local outerFrame = Instance.new("Frame")
     outerFrame.Name = "OuterFrame"
     outerFrame.AnchorPoint = Vector2.new(0.5, 0)
-    local screenHeight = self.container.AbsoluteSize.Y
-    outerFrame.Position = UDim2.new(0.5, 0, 1, 0) -- Start off bottom
+    outerFrame.Position = UDim2.new(0.5, 0, 1, 0)
     outerFrame.Size = UDim2.new(0, minWidth + 4, 0, 25)
     outerFrame.BackgroundTransparency = 0
     outerFrame.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
