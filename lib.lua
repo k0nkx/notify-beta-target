@@ -23,24 +23,20 @@ function NotificationLib.new()
     
     -- Wait for game to fully load
     task.spawn(function()
-        -- Wait for player to be loaded
         local player = game:GetService("Players").LocalPlayer
         while not player.Character do
             player.CharacterAdded:Wait()
-            task.wait(1) -- Additional buffer time
+            task.wait(1)
         end
         
-        -- Additional loading checks if needed
         if game:IsLoaded() == false then
             game.Loaded:Wait()
         end
         
-        -- Wait for the core UI to be ready
         task.wait(1)
         
         self.ready = true
         
-        -- Process any queued notifications
         for _, notificationData in ipairs(self.queuedNotifications) do
             self:CreateNotification(notificationData.text, notificationData.duration, notificationData.color)
         end
@@ -52,27 +48,24 @@ end
 
 function NotificationLib:UpdatePositions()
     local screenHeight = self.container.AbsoluteSize.Y
-    local totalHeight = 0
     
-    -- Calculate total height of all notifications
+    local totalHeight = 0
     for _, notification in ipairs(self.activeNotifications) do
         if notification and notification.outerFrame then
-            totalHeight = totalHeight + notification.outerFrame.AbsoluteSize.Y + 5 -- 5px gap between notifications
+            totalHeight = totalHeight + notification.outerFrame.AbsoluteSize.Y + 5
         end
     end
     
-    -- Position notifications from bottom up
-    local currentY = screenHeight - 20 -- Start 20px from bottom
-    for i, notification in ipairs(self.activeNotifications) do
+    local currentY = screenHeight - 20
+    for _, notification in ipairs(self.activeNotifications) do
         if notification and notification.outerFrame and notification.outerFrame.Parent then
-            currentY = currentY - notification.outerFrame.AbsoluteSize.Y - 5 -- Move up for each notification
-            local targetX = (self.container.AbsoluteSize.X - notification.outerFrame.AbsoluteSize.X) / 2 -- Center horizontally
+            currentY = currentY - notification.outerFrame.AbsoluteSize.Y - 5
             
             game:GetService("TweenService"):Create(
                 notification.outerFrame,
                 TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
                 {
-                    Position = UDim2.new(0, targetX, 0, currentY),
+                    Position = UDim2.new(0.5, 0, 0, currentY), -- Always center horizontally
                     BackgroundTransparency = 0
                 }
             ):Play()
@@ -96,10 +89,10 @@ function NotificationLib:CreateNotification(text, duration, color)
 
     local outerFrame = Instance.new("Frame")
     outerFrame.Name = "OuterFrame"
-    outerFrame.AnchorPoint = Vector2.new(0.5, 0) -- Anchor to center bottom
-    outerFrame.Position = UDim2.new(0.5, 0, 1, 0) -- Start below screen
+    outerFrame.AnchorPoint = Vector2.new(0.5, 0)
+    outerFrame.Position = UDim2.new(0.5, 0, 1, 0)
     outerFrame.Size = UDim2.new(0, minWidth + 4, 0, 25)
-    outerFrame.BackgroundTransparency = 1 -- Start transparent
+    outerFrame.BackgroundTransparency = 1
     outerFrame.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
     outerFrame.BorderSizePixel = 1
     outerFrame.BorderColor3 = Color3.fromRGB(40, 40, 40)
@@ -153,7 +146,6 @@ function NotificationLib:CreateNotification(text, duration, color)
     textLabel.TextTransparency = 0
     textLabel.Parent = background
 
-    -- Hover effect for entire notification
     local hoverConn = outerFrame.MouseEnter:Connect(function()
         for _, element in pairs({outerFrame, holder, background, accentBar, progressBar, textLabel}) do
             game:GetService("TweenService"):Create(
@@ -192,10 +184,8 @@ function NotificationLib:CreateNotification(text, duration, color)
     }
     table.insert(self.activeNotifications, notification)
 
-    -- Animate the notification popping up
     self:UpdatePositions()
 
-    -- Start progress bar immediately
     game:GetService("TweenService"):Create(
         progressBar,
         TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
@@ -218,7 +208,6 @@ function NotificationLib:CreateNotification(text, duration, color)
             end
         end
 
-        -- Animate the notification sliding down when removed
         game:GetService("TweenService"):Create(
             outerFrame,
             TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
@@ -228,7 +217,6 @@ function NotificationLib:CreateNotification(text, duration, color)
             }
         ):Play()
 
-        -- Destroy after animation completes
         task.delay(0.3, function()
             outerFrame:Destroy()
             self:UpdatePositions()
@@ -236,7 +224,6 @@ function NotificationLib:CreateNotification(text, duration, color)
     end
 
     notification.remove = Remove
-
     task.delay(duration, Remove)
     
     return notification
@@ -250,7 +237,6 @@ end
 
 function NotificationLib:WelcomePlayer()
     if not self.ready then
-        -- Queue the welcome message if game isn't loaded yet
         task.spawn(function()
             while not self.ready do
                 task.wait()
@@ -270,7 +256,6 @@ function NotificationLib:WelcomePlayer()
 end
 
 function NotificationLib:Destroy()
-    -- Clear the current instance reference if it's this one
     if currentInstance == self then
         currentInstance = nil
     end
