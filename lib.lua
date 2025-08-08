@@ -203,7 +203,7 @@ function NotificationLib:CreateNotification(text, duration, color)
 
         local tween = tweenService:Create(
             outerFrame,
-            TweenInfo.new(2, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
+            TweenInfo.new(1, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
             {
                 Position = UDim2.new(0, -outerFrame.AbsoluteSize.X, outerFrame.Position.Y.Scale, outerFrame.Position.Y.Offset),
                 BackgroundTransparency = 1
