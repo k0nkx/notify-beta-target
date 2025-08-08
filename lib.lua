@@ -44,17 +44,13 @@ function NotificationLib.new()
 end
 
 function NotificationLib:UpdatePositions()
-    local screenHeight = self.container.AbsoluteSize.Y
-    local totalHeight = #self.activeNotifications * 30
-    local startY = screenHeight - totalHeight - 20 -- 20 px from bottom
-
     for i, notification in ipairs(self.activeNotifications) do
         if notification and notification.outerFrame and notification.outerFrame.Parent then
-            local targetY = startY + ((i - 1) * 30)
+            local targetY = 20 + ((#self.activeNotifications - i) * 30) -- Stack upwards
             game:GetService("TweenService"):Create(
                 notification.outerFrame,
                 TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-                {Position = UDim2.new(0.5, 0, 0, targetY)}
+                {Position = UDim2.new(0.5, 0, 1, -targetY)} -- Position at bottom
             ):Play()
         end
     end
@@ -105,8 +101,8 @@ function NotificationLib:CreateNotification(text, duration, color)
 
     local outerFrame = Instance.new("Frame")
     outerFrame.Name = "OuterFrame"
-    outerFrame.AnchorPoint = Vector2.new(0.5, 0)
-    outerFrame.Position = UDim2.new(0.5, 0, 1, 0)
+    outerFrame.AnchorPoint = Vector2.new(0.5, 1) -- Anchor to bottom
+    outerFrame.Position = UDim2.new(0.5, 0, 1.2, 0) -- Start below screen
     outerFrame.Size = UDim2.new(0, minWidth + 4, 0, 25)
     outerFrame.BackgroundTransparency = 0
     outerFrame.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
@@ -240,10 +236,8 @@ function NotificationLib:CreateNotification(text, duration, color)
             outerFrame,
             TweenInfo.new(0.5, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
             {
-                Position = UDim2.new(0, -outerFrame.AbsoluteSize.X, outerFrame.Position.Y.Scale, outerFrame.Position.Y.Offset),
-                Size = UDim2.new(0, 0, 0, outerFrame.AbsoluteSize.Y),
-                BackgroundTransparency = 1,
-                BorderSizePixel = 0
+                Position = UDim2.new(0.5, 0, 1.2, 0), -- Slide down when removed
+                BackgroundTransparency = 1
             }
         ))
 
